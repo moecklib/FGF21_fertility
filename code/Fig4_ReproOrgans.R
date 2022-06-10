@@ -71,7 +71,7 @@ FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")] %>%
   scale_fill_manual(values=mycolors_controls)+
   geom_signif(comparisons = list(c("FGF21", "HFD")))+
   geom_signif(comparisons = list(c("FGF21", "ND")), 
-              position = position_nudge(y=0.3))+
+              position = position_nudge(y=0.5))+
   theme_Publication()
 
 FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")] %>% 
