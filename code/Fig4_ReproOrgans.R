@@ -14,17 +14,16 @@ lapply(c("tidyverse", "RColorBrewer", "data.table", "colorspace", "readxl",
 
 #Import of raw result file
 FGF_21<-read.csv("data/FGF21_Fertility.csv")
-
+FGF_21$group<-factor(x=FGF_21$group, levels = c("ND", "HFD", "FGF21"))
+FGF21_Repro<-FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")]
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Plot structure & functions####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-#Theme of colours to be used throughout. Colors chosen with Viz Palette and colorgorical
-mycolors_controls<-c("#cccccc","#ffb7ad","#ff695f","#c00000")
-mycolors_treatment<-c("#cccccc","#a8d5e6","#4d5f98")
-mycolors_time<-c("#cccccc","#cc96eb","#49388e")
-mycolors_groups<-wes_palette("GrandBudapest1")
+#Theme of colours to be used throughout the manuscript. Colors chosen with Viz Palette and colorgorical
+mycolors_fill<-c("#cccccc","#FFE37E","#d94f60")
+mycolors_stroke<-c("#9B9B9B","#FFB14E","#A21736")
 
 #Theme publication function
 theme_Publication <- function(base_size=16, base_family="sans") {
@@ -59,20 +58,39 @@ theme_Publication <- function(base_size=16, base_family="sans") {
     ))
 }
 
+boxplot_FGF21<-function(nudge=0.6,
+                        size=0.8,
+                        textsize=5){
+  list(
+    geom_boxplot(size=1),
+    geom_point(),
+    scale_fill_manual(values=mycolors_fill),
+    scale_color_manual(values=mycolors_stroke),
+    geom_signif(comparisons = list(c("FGF21", "HFD"),
+                                   c("ND", "HFD")),
+                color="black",
+                size=size,
+                textsize = textsize),
+    geom_signif(comparisons = list(c("FGF21", "ND")), 
+                position = position_nudge(y=nudge),
+                color="black",
+                size=size,
+                textsize = textsize),
+    theme_Publication(base_size=22)
+  )
+}
 
+boxplot_FGF21()
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Plots for figure S3 (All qPCR results combined####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")] %>% 
-  ggplot(aes(x=group, y=MatureCL, fill=group))+
-  geom_boxplot()+
-  geom_point()+
-  scale_fill_manual(values=mycolors_controls)+
-  geom_signif(comparisons = list(c("FGF21", "HFD")))+
-  geom_signif(comparisons = list(c("FGF21", "ND")), 
-              position = position_nudge(y=0.5))+
-  theme_Publication()
+FGF21_Repro %>% 
+  ggplot(aes(x=group, y=MatureCL, fill=group, color=group))+
+  boxplot_FGF21()+
+  labs(y= "Mature Corpus Luteus", x=NULL)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
+
 
 FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")] %>% 
   ggplot(aes(x=group, y=MatureFoll))+
