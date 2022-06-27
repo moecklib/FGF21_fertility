@@ -76,11 +76,11 @@ boxplot_FGF21<-function(nudge=0.6,
                 color="black",
                 size=size,
                 textsize = textsize),
-    theme_Publication(base_size=22)
+    theme_Publication(base_size=22),
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
   )
 }
 
-boxplot_FGF21()
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Plots for figure S3 (All qPCR results combined####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
@@ -88,22 +88,14 @@ boxplot_FGF21()
 FGF21_Repro %>% 
   ggplot(aes(x=group, y=MatureCL, fill=group, color=group))+
   boxplot_FGF21()+
-  labs(y= "Mature Corpus Luteus", x=NULL)+
-  scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
+  labs(y= "Mature Corpus Luteus", x=NULL)
 
+FGF21_Repro %>% 
+  ggplot(aes(x=group, y=MatureFoll, fill=group, color=group))+
+  boxplot_FGF21(nudge = 0.4)+
+  labs(y= "Mature Follicules", x=NULL)
 
-FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")] %>% 
-  ggplot(aes(x=group, y=MatureFoll))+
-  geom_boxplot()+
-  geom_point()+
-  geom_signif(comparisons = list(c("FGF21", "HFD")))+
-  geom_signif(comparisons = list(c("FGF21", "ND")), 
-              position = position_nudge(y=0.3))
-
-FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")] %>% 
-  ggplot(aes(x=group, y=EndometrialThickness))+
-  geom_boxplot()+
-  geom_point()+
-  geom_signif(comparisons = list(c("FGF21", "HFD")))+
-  geom_signif(comparisons = list(c("FGF21", "ND")), 
-              position = position_nudge(y=20))
+FGF21_Repro %>% 
+  ggplot(aes(x=group, y=EndometrialThickness, fill=group, color=group))+
+  boxplot_FGF21(nudge = 0.4)+
+  labs(y= "Endometrial thickness [μm]", x=NULL)
