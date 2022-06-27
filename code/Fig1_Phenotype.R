@@ -1,8 +1,8 @@
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-#*#ANALYSIS FGF21 Fertility Fig4 Analysis of reproductive organs
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
-#Analysis of histology data of reproductive organs. Quantification
-#MAI 2022, BEAT MOECKLI
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+#ANALYSIS FGF21 Fertility Fig1 Phenotyping
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+#Analysis of data for figure 1 regarding weight curve and phenotyping.
+#JULY 2022, BEAT MOECKLI
 
 #loading necessary packages
 lapply(c("tidyverse", "RColorBrewer", "data.table", "colorspace", "readxl", 
@@ -12,11 +12,12 @@ lapply(c("tidyverse", "RColorBrewer", "data.table", "colorspace", "readxl",
 #Raw results import and annotation####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
-#Import of raw result file
-FGF_21<-read.csv("data/FGF21_Fertility.csv")%>%
-  mutate(group=factor(x=group, levels = c("ND", "HFD", "FGF21")))
+#Import the weight data for all animals per week
+FGF21_Weight<-read.csv("data/FGF21_Weight.csv")%>%
+  mutate(diet=factor(diet, levels = c("ND", "HFD")))
 
-FGF21_Repro<-FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")]
+#Import the weight data for the week after the sacrifice for the FGF21 and control animals
+FGF21_WeightImpl<-read.csv("data/FGF21_WeightImplantation.csv")
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Plot structure & functions####
@@ -68,8 +69,11 @@ boxplot_FGF21<-function(nudge=0.6,
     geom_point(),
     scale_fill_manual(values=mycolors_fill),
     scale_color_manual(values=mycolors_stroke),
-    geom_signif(comparisons = list(c("FGF21", "HFD"),
-                                   c("ND", "HFD")),
+    geom_signif(comparisons = list(c("FGF21", "HFD")),
+                color="black",
+                size=size,
+                textsize = textsize),
+    geom_signif(comparisons = list(c("ND", "HFD")),
                 color="black",
                 size=size,
                 textsize = textsize),
@@ -83,21 +87,33 @@ boxplot_FGF21<-function(nudge=0.6,
   )
 }
 
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
-#Plots for figure S3 (All qPCR results combined####
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-FGF21_Repro %>% 
-  ggplot(aes(x=group, y=MatureCL, fill=group, color=group))+
+
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+#Create weight curve for dams between HFD and ND####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+
+#Pivot to longer
+grow_dams<-FGF21_Weight%>%dplyr::select(lab_id, diet, cage, group, starts_with("w"))%>%
+  pivot_longer(cols=starts_with("w"), names_to="week", names_transform=list(week=readr::parse_number), 
+               values_to="weight")
+
+ggplot(grow_dams, aes(x=week, y=weight))+
+  geom_point()
+
+x <- seq(0,12,2)
+y<- grow_dams%>%filter(week == c(0,2,4))
+
+?filter
+
+grow_dams[grow_dams$week%in%seq(0,12,2),]
+
+#Plot per diet without trend curve but statistical analysis
+grow_dams[grow_dams$week%in%seq(0,12,2),]%>%
+ggplot(aes(x=diet, y=weight, fill=diet))+geom_boxplot()+
+  geom_beeswarm(color="black", size=1, alpha=0.6)+
+  facet_wrap(~week, nrow=1, switch = "x")+
   boxplot_FGF21()+
-  labs(y= "Mature Corpus Luteus", x=NULL)
-
-FGF21_Repro %>% 
-  ggplot(aes(x=group, y=MatureFoll, fill=group, color=group))+
-  boxplot_FGF21(nudge = 0.4)+
-  labs(y= "Mature Follicules", x=NULL)
-
-FGF21_Repro %>% 
-  ggplot(aes(x=group, y=EndometrialThickness, fill=group, color=group))+
-  boxplot_FGF21(nudge = 0.4)+
-  labs(y= "Endometrial thickness [μm]", x=NULL)
+  labs(y= "Weight", x="Week after diet start")+
+  theme(axis.text.x = element_blank(), axis.ticks = element_blank())+
+  ggtitle("Weight curve breeding dams for Interventions")
