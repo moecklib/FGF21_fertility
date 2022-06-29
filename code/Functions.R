@@ -49,26 +49,49 @@ theme_Publication <- function(base_size=16, base_family="sans") {
 #Function to create the standard boxplot, returns list element
 boxplot_FGF21<-function(nudge=0.6,
                         size=0.8,
-                        textsize=5){
+                        textsize=6,
+                        p_level=FALSE,
+                        point_size=3){
   list(
     geom_boxplot(size=1),
-    geom_point(),
+    geom_point(size=point_size),
     scale_fill_manual(values=mycolors_fill),
     scale_color_manual(values=mycolors_stroke),
     geom_signif(comparisons = list(c("FGF21", "HFD")),
                 color="black",
                 size=size,
-                textsize = textsize),
+                textsize = textsize,
+                map_signif_level = p_level),
     geom_signif(comparisons = list(c("ND", "HFD")),
                 color="black",
                 size=size,
-                textsize = textsize),
+                textsize = textsize,
+                map_signif_level = p_level),
     geom_signif(comparisons = list(c("FGF21", "ND")), 
                 position = position_nudge(y=nudge),
                 color="black",
                 size=size,
-                textsize = textsize),
+                textsize = textsize,
+                map_signif_level = p_level),
     theme_Publication(base_size=22),
     scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
   )
+}
+
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+#Save the last plot function####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+
+#Create a function that saves the plots directly to the output folder
+save_plot<-function(plot,
+                    width=5,
+                    height=5.5){
+  ggsave(
+    filename=paste(plot,".tiff", sep = ""),
+    device="tiff",
+    width=width,
+    height=height,
+    # units="mm",
+    path="output/graphs",
+    dpi = "retina")
 }
