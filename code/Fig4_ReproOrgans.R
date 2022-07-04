@@ -42,7 +42,7 @@ FGF21_Repro %>%
              y=MatureCL))+
   boxplot_FGF21()+
   labs(y= "Mature Corpus Luteus", x=NULL)
-save_plot("NbCorpousLuteus")
+save_plot("NbCorpousLuteus", folder="Fig4")
 
 #Mature Follicules
 FGF21_Repro %>% 
@@ -66,9 +66,10 @@ FGF21_Repro %>% mutate(Surface_CL_mm2=Surface_CL/1E6)%>%  #Obtain the CL surface
              y=Surface_CL_mm2))+
   boxplot_FGF21(nudge = 0.6)+
   labs(y= "Surface CL [mm2]", x=NULL)
-save_plot("SurfaceCL")
+save_plot("SurfaceCL", folder="Fig4")
 
-#This 
+#This below code plots the items per organ and not per animal
+#Import the data file
 CL_surface<- read.csv("data/measurements.csv")%>%
   rename(Image=Image, Area=Area.Âµm.2)%>%
   filter(!is.na(Area))%>%
@@ -77,12 +78,14 @@ CL_surface<- read.csv("data/measurements.csv")%>%
   mutate(Histo_ID=sub(pattern = ".czi.*", "", x=Image))%>%
   left_join(FGF21_Repro[,c("Histo_ID", "Group")])
 
+#Plotting of the file
 CL_surface %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
-             y=MeanArea_CL))+
-  boxplot_FGF21(nudge = 0.08E6)+
+             y=Count))+
+  boxplot_FGF21(nudge = 1)+
   labs(y= "Endometrial thickness [μm]", x=NULL)
 
+#Obtain a table with the number of organs per group
 table(FGF21_Repro$Group)
 
 
