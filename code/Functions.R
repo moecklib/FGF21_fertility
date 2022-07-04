@@ -48,13 +48,13 @@ theme_Publication <- function(base_size=16, base_family="sans") {
 
 #Function to create the standard boxplot, returns list element
 boxplot_FGF21<-function(nudge=0.6,
-                        size=0.8,
+                        size=0.9,
                         textsize=6,
                         p_level=FALSE,
                         point_size=3){
   list(
     geom_boxplot(size=1),
-    geom_point(size=point_size),
+    geom_beeswarm(size=point_size),
     scale_fill_manual(values=mycolors_fill),
     scale_color_manual(values=mycolors_stroke),
     geom_signif(comparisons = list(c("FGF21", "HFD")),
@@ -84,6 +84,7 @@ boxplot_FGF21<-function(nudge=0.6,
 
 #Create a function that saves the plots directly to the output folder
 save_plot<-function(plot,
+                    folder="",
                     width=5,
                     height=5.5){
   ggsave(
@@ -92,6 +93,6 @@ save_plot<-function(plot,
     width=width,
     height=height,
     # units="mm",
-    path="output/graphs",
+    path=paste("output/graphs/", folder, sep = ""),
     dpi = "retina")
 }
