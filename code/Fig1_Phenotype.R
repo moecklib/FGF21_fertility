@@ -27,9 +27,9 @@ FGF21_Eval<-read.csv("data/FGF21_Evaluation.csv")%>%
 #Define colors & source functions####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-#Theme of colours to be used throughout the manuscript. Colors chosen with Viz Palette and colorgorical
-mycolors_fill<-c("#cccccc","#FFE37E","#d94f60")
-mycolors_stroke<-c("#9B9B9B","#FFB14E","#A21736")
+#Theme of colors, used RColorBrewer, display.brewer.pal(12, "Paired")
+mycolors_fill<-c("#FFFFFF", RColorBrewer::brewer.pal(8, "Paired")[c(1,5)])
+mycolors_stroke<-c("#000000", RColorBrewer::brewer.pal(8, "Paired")[c(2,6)])
 
 #Source the graph functions
 source("code/Functions.R")
@@ -50,11 +50,11 @@ ggplot(aes(x=diet, y=weight, fill=diet, color=diet))+
   geom_beeswarm(size=1.5, alpha=0.6)+
   facet_wrap(~week, nrow=1, switch = "x")+            #Facet wrap to show statistic
   boxplot_FGF21(point_size = 2)+
-  labs(y= "Weight", x="Week after diet start")+
+  labs(y= "Weight [g]", x="Week after diet start")+
   theme(axis.text.x = element_blank(), axis.ticks = element_blank())
 
 #Save the plot
-save_plot("WeightCurve", width=7.5)
+save_plot("WeightCurve", width=7.5, folder="Fig1")
 
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
@@ -77,7 +77,7 @@ ggplot(data=grow_dams_FGF21, aes(x=day, y=weight, color=group2, fill=group2))+
   theme_Publication()
 
 #Save the plot
-save_plot("TrendCurve_FGF21", width=7.5)
+save_plot("TrendCurve_FGF21", width=7.5, folder="Fig1")
 
 
 #Plot per diet without trend curve but statistical analysis
@@ -91,7 +91,7 @@ ggplot(aes(x=group2, y=weight, color=group2, fill=group2))+
   scale_color_manual(values=mycolors_stroke[2:3])
 
 #Save the plot
-save_plot("Boxplot_FGF21", width=7.5)
+save_plot("Boxplot_FGF21", width=7.5, folder="Fig1")
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 #Evaluation of dams before sacrifice (Glycemia, Fat mass etc. ####
@@ -102,7 +102,7 @@ ggplot(data = FGF21_Eval, aes(x=Group, fill=Group, color=Group,
                               y=fasting_glycemia))+
   boxplot_FGF21(nudge = 0.75)+ ylim(0, 10)+
   labs(y= "fasting glycemia [mmol/l]", x=NULL)
-save_plot("FastingGlycemia")
+save_plot("FastingGlycemia", folder="Fig1")
 
 #Fat mass level
 FGF21_Eval[!(FGF21_Eval$fat_mass<5 & FGF21_Eval$Group=="FGF21"),]%>% #Remove animal with tumor
@@ -110,7 +110,7 @@ ggplot(aes(x=Group, fill=Group, color=Group,
                               y=fat_mass))+
   boxplot_FGF21(nudge = 2)+ 
   labs(y= "fat mass [%]", x=NULL)
-save_plot("FatMass")
+save_plot("FatMass", folder="Fig1")
 
 #Liver weight at sacrifice
 FGF21_Eval%>%
@@ -118,4 +118,4 @@ FGF21_Eval%>%
              y=liver_weight))+
   boxplot_FGF21(nudge = 0.15)+ 
   labs(y= "liver weight [g]", x=NULL)
-save_plot("LiverWeight")
+save_plot("LiverWeight", folder="Fig1")
