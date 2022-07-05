@@ -119,3 +119,27 @@ FGF21_Eval%>%
   boxplot_FGF21(nudge = 0.15)+ 
   labs(y= "liver weight [g]", x=NULL)
 save_plot("LiverWeight", folder="Fig1")
+
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+#Quantification of steatosis ####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+
+#The total surface of steatosis was assessed with QuPath (see separate script)
+
+steatosis_surface<- read.csv("data/QuPath_Steatosis_Measure.csv")%>%
+  rename(Image=Image, Name=Name, Area=Area.Âµm.2)%>%
+  pivot_wider(names_from = Name, values_from = Area)%>%
+  mutate(Lab_ID=as.integer(substr(Image, 2, 3)))%>%
+  left_join(FGF21_Eval[,c("Lab_ID", "Group")])%>%
+  mutate(Rel_Steatosis=(Steatosis/Tissue)*100)%>%
+  filter(!Lab_ID==10)
+
+steatosis_surface%>%
+  ggplot(aes(x=Group, fill=Group, color=Group,
+             y=Rel_Steatosis))+
+  boxplot_FGF21(nudge = 0.8)+ 
+  labs(y= "Relative Steatosis [%]", x=NULL)
+save_plot("RelSteatosis", folder="Fig1")
+
+steatosis_surface%>%group_by(Group)%>%
+  summarise(mean=mean(Rel_Steatosis))
