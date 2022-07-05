@@ -53,3 +53,10 @@ FGF21_Fert %>%
   boxplot_FGF21(nudge = 1.8)+
   labs(y= "Offspring alive", x=NULL)
 save_plot("NbOffspringAlive")
+
+#Small script to obtain median per group for the writing of the result section.
+FGF21_Fert%>% group_by(Group)%>%
+  summarise(median_NbOff=median(Nb_offspring),
+            median_NbOffAlive=median(Nb_offspring_alive))
+
+            
