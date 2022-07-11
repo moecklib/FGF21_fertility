@@ -96,3 +96,22 @@ save_plot<-function(plot,
     path=paste("output/graphs/", folder, sep = ""),
     dpi = "retina")
 }
+
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+#Summary stat for manuscript####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+
+#Function to calculate some simple summary statistics
+summary_stat <- function(x=FGF21_Repro,
+                         group_var="Group",
+                         var_interest="MatureCL",
+                         stat=median)
+  {
+  
+  #Eliminate NA values in the variable of interest
+  y <- x[complete.cases(x[,var_interest]),]
+  
+  #Compute summary statistics
+  tapply(y[,var_interest], y[,group_var], stat)
+  
+}
