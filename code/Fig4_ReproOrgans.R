@@ -12,14 +12,9 @@ lapply(c("tidyverse", "RColorBrewer", "data.table", "colorspace", "readxl",
 #Raw results import and annotation####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
+#Load data file
 FGF21_Repro<-read.csv("data/FGF21_Evaluation.csv")%>%
   mutate(Group=factor(x=Group, levels = c("ND", "HFD", "FGF21")))
-
-#Import of raw result file
-FGF_21<-read.csv("data/FGF21_Fertility.csv")%>%
-  mutate(group=factor(x=group, levels = c("ND", "HFD", "FGF21")))
-
-FGF21_Repro<-FGF_21[1:22, c("group", "MatureCL", "MatureFoll", "EndometrialThickness")]
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Define colors & source functions####
@@ -32,11 +27,11 @@ mycolors_stroke<-c("#000000", RColorBrewer::brewer.pal(8, "Paired")[c(2,6)])
 #Source the graph functions
 source("code/Functions.R")
 
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
-#Plots for figure S3 (All qPCR results combined####
-#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+#Plots for figure 4, reproductive organs####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
-#Number of Corpus Luteus
+#Number of Corpora Lutea
 FGF21_Repro %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=MatureCL))+
@@ -44,23 +39,31 @@ FGF21_Repro %>%
   labs(y= "Mature Corpus Luteus", x=NULL)
 save_plot("NbCorpousLuteus", folder="Fig4")
 
-#Mature Follicules
+#Mature Follicles
 FGF21_Repro %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=MatureFoll))+
-  boxplot_FGF21(nudge = 0.4)+
+  boxplot_FGF21(nudge = 0.25)+
   labs(y= "Mature Follicules", x=NULL)
-save_plot("NbFolicules", folder="Fig4")
+save_plot("NbMatFollicules", folder="Fig4")
+
+#Total Follicles, not included in the figure
+FGF21_Repro %>% 
+  ggplot(aes(x=Group, fill=Group, color=Group,
+             y=Follicules))+
+  boxplot_FGF21(nudge = 0.5)+
+  labs(y= "Follicules", x=NULL)
+save_plot("NbFollicules", folder="Fig4")
 
 #Endometrial thickness
 FGF21_Repro %>% mutate(Endomet_Thick_mm=EndometrialThickness/1E3)%>%  #Obtain the ET in mm
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=Endomet_Thick_mm))+
-  boxplot_FGF21(nudge = 0.06)+
-  labs(y= "Endometrial thickness [mm]", x=NULL)
+  boxplot_FGF21(nudge = 0.04)+
+  labs(y= "Thickness [mm]", x=NULL)
 save_plot("EndometThickness", folder="Fig4")
 
-#Surface of corpus luteus
+#Surface of corpora lutea (CL)
 FGF21_Repro %>% mutate(Surface_CL_mm2=Surface_CL/1E6)%>%  #Obtain the CL surface in mm2 
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=Surface_CL_mm2))+
@@ -68,24 +71,44 @@ FGF21_Repro %>% mutate(Surface_CL_mm2=Surface_CL/1E6)%>%  #Obtain the CL surface
   labs(y= "Surface CL [mm2]", x=NULL)
 save_plot("SurfaceCL", folder="Fig4")
 
+#Surface per individual CL
+FGF21_Repro%>%mutate(Surface_CL=Surface_CL/1E6)%>%
+  mutate(meanSurfperCL=Surface_CL/MatureCL)%>% 
+  ggplot(aes(x=Group, fill=Group, color=Group,
+             y=meanSurfperCL))+
+  boxplot_FGF21(nudge = 0.2)
+
+#Dosing of LH
+FGF21_Repro %>%
+  ggplot(aes(x=Group, fill=Group, color=Group,
+             y=LH_100ul))+
+  boxplot_FGF21(nudge = 15)+
+  labs(y= "LH [pg/mL]", x=NULL)
+colnames(FGF21_Repro)
+save_plot("SurfaceCL", folder="Fig4")
+
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+#Tryout to plot data per organ and not animal####
+#Data is not included in the final figure    ####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+
 #This below code plots the items per organ and not per animal
 #Import the data file
-CL_surface<- read.csv("data/measurements.csv")%>%
-  rename(Image=Image, Area=Area.Âµm.2)%>%
-  filter(!is.na(Area))%>%
-  group_by(Image)%>%
-  summarise(Count=n(), Area_CL=sum(Area), MeanArea_CL=mean(Area))%>%
+CL_surface<- read.csv("data/QuPath_CL_surface.csv")%>%
   mutate(Histo_ID=sub(pattern = ".czi.*", "", x=Image))%>%
   left_join(FGF21_Repro[,c("Histo_ID", "Group")])
 
-#Plotting of the file
+#Count of CL per organ, automatically assessed by QuPath
 CL_surface %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
-             y=Count))+
-  boxplot_FGF21(nudge = 1)+
-  labs(y= "Endometrial thickness [μm]", x=NULL)
+             y=count))+
+  boxplot_FGF21(nudge = 1)
 
-#Obtain a table with the number of organs per group
-table(FGF21_Repro$Group)
-
-
+#Obtain some basic summary statistics
+FGF21_Repro%>%group_by(Group)%>%
+  filter(!is.na(MatureCL))%>%
+  filter(!is.na(Surface_CL))%>%
+  mutate(Surface_CL=Surface_CL/1E6)%>%
+  mutate(meanSurfperCL=Surface_CL/MatureCL)%>%
+  summarise(median_MatureCL=median(MatureCL), median_Foll=median(MatureFoll),
+            median_SurfaceCL=median(Surface_CL), median_SurfacePerCL=median(meanSurfperCL))
