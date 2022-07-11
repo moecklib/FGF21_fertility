@@ -43,7 +43,6 @@ grow_dams<-FGF21_Weight%>%dplyr::select(lab_id, diet, cage, group, starts_with("
   pivot_longer(cols=starts_with("w"), names_to="week", names_transform=list(week=readr::parse_number), 
                values_to="weight")
 
-
 #Plot per diet without trend curve but statistical analysis
 grow_dams[grow_dams$week%in%seq(2,12,2),]%>%          #Only take even weeks
 ggplot(aes(x=diet, y=weight, fill=diet, color=diet))+
@@ -52,16 +51,18 @@ ggplot(aes(x=diet, y=weight, fill=diet, color=diet))+
   boxplot_FGF21(point_size = 2)+
   labs(y= "Weight [g]", x="Week after diet start")+
   theme(axis.text.x = element_blank(), axis.ticks = element_blank())
+save_plot("WeightCurve", width=7.5, folder="Fig1")      #Save the plot
 
-#Save the plot
-save_plot("WeightCurve", width=7.5, folder="Fig1")
+#Simple summary table for the manuscript
+summary_stat(df=FGF21_Weight, group_var = "diet", var_interest = "w1")
+summary_stat(df=FGF21_Weight, group_var = "diet", var_interest = "w12")
 
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Weight curve after FGF21 pump implantation before breeding (June 2021)####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-#pivot data to long format
+#pivot data to long format of FGF21 short term effect on weight graph
 grow_dams_FGF21<-FGF21_WeightImpl%>%dplyr::select(lab_id, cage, group1, group2, starts_with("drel"))%>%
   pivot_longer(cols=starts_with("d"), names_to="day", names_transform=list(day=readr::parse_number), 
                values_to="weight")%>%
@@ -75,9 +76,7 @@ ggplot(data=grow_dams_FGF21, aes(x=day, y=weight, color=group2, fill=group2))+
   scale_x_continuous(breaks = seq(-1, 12, by = 2))+
   scale_fill_manual(values=mycolors_fill)+scale_color_manual(values=mycolors_stroke)+
   theme_Publication()
-
-#Save the plot
-save_plot("TrendCurve_FGF21", width=7.5, folder="Fig1")
+save_plot("TrendCurve_FGF21", width=7.5, folder="Fig1")     #Save the plot
 
 
 #Plot per diet without trend curve but statistical analysis
@@ -89,9 +88,12 @@ ggplot(aes(x=group2, y=weight, color=group2, fill=group2))+
   theme(axis.text.x = element_blank(), axis.ticks = element_blank())+
   scale_fill_manual(values=mycolors_fill[2:3])+
   scale_color_manual(values=mycolors_stroke[2:3])
+save_plot("WeightBoxplot_FGF21", width=7.5, folder="Fig1")     #Save the plot
 
-#Save the plot
-save_plot("Boxplot_FGF21", width=7.5, folder="Fig1")
+#Simple summary table for the manuscript
+grow_dams_FGF21%>%filter(group2!="ND")%>%
+  group_by(group2, day)%>%
+  summarise(weight=median(weight))
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 #Evaluation of dams before sacrifice (Glycemia, Fat mass etc. ####
@@ -120,20 +122,24 @@ FGF21_Eval%>%
   labs(y= "liver weight [g]", x=NULL)
 save_plot("LiverWeight", folder="Fig1")
 
+#Simple summary table for the manuscript
+summary_stat(var_interest = "liver_weight")
+
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Quantification of steatosis ####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
 #The total surface of steatosis was assessed with QuPath (see separate script)
-
+#Import raw data file and process it for the figure
 steatosis_surface<- read.csv("data/QuPath_Steatosis_Measure.csv")%>%
-  rename(Image=Image, Name=Name, Area=Area.Âµm.2)%>%
-  pivot_wider(names_from = Name, values_from = Area)%>%
-  mutate(Lab_ID=as.integer(substr(Image, 2, 3)))%>%
-  left_join(FGF21_Eval[,c("Lab_ID", "Group")])%>%
-  mutate(Rel_Steatosis=(Steatosis/Tissue)*100)%>%
-  filter(!Lab_ID==10)
+  rename(Image=Image, Name=Name, Area=Area.Âµm.2)%>%  #Rename variable to readable format
+  pivot_wider(names_from = Name, values_from = Area)%>% #Pivot wider
+  mutate(Lab_ID=as.integer(substr(Image, 2, 3)))%>% #Extract the lab_id from the image name as integer
+  left_join(FGF21_Eval[,c("Lab_ID", "Group")])%>%   #Left join to obtain the grouping variable
+  mutate(Rel_Steatosis=(Steatosis/Tissue)*100)%>%   #Calculate the relative tissue surface of steatosis
+  filter(!Lab_ID==10)                               #Filter the data of the sick animal (tumor)
 
+#Create corresponding graph
 steatosis_surface%>%
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=Rel_Steatosis))+
@@ -141,5 +147,7 @@ steatosis_surface%>%
   labs(y= "Relative Steatosis [%]", x=NULL)
 save_plot("RelSteatosis", folder="Fig1")
 
+#Simple summary statistics
 steatosis_surface%>%group_by(Group)%>%
-  summarise(mean=mean(Rel_Steatosis))
+  summarise(mean=mean(Rel_Steatosis),
+            median=median(Rel_Steatosis))
