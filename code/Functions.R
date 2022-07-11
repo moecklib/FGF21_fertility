@@ -102,16 +102,15 @@ save_plot<-function(plot,
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
 #Function to calculate some simple summary statistics
-summary_stat <- function(x=FGF21_Repro,
+summary_stat <- function(df=FGF21_Eval,
                          group_var="Group",
                          var_interest="MatureCL",
                          stat=median)
   {
   
   #Eliminate NA values in the variable of interest
-  y <- x[complete.cases(x[,var_interest]),]
+  y <- df[complete.cases(df[,var_interest]),]
   
   #Compute summary statistics
   tapply(y[,var_interest], y[,group_var], stat)
-  
 }
