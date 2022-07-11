@@ -31,8 +31,7 @@ source("code/Functions.R")
 #Plots for figure 2 regarding fertility####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-colnames(FGF21_Fert)
-
+#Number of pregnancies
 FGF21_Fert %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=Nb_pregnancy))+
@@ -40,6 +39,7 @@ FGF21_Fert %>%
   labs(y= "Pregnancies", x=NULL)
 save_plot("NbPregnancies")
 
+#Number of offspring
 FGF21_Fert %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=Nb_offspring))+
@@ -47,6 +47,7 @@ FGF21_Fert %>%
   labs(y= "Offspring", x=NULL)
 save_plot("NbOffspring")
 
+#Number of offspring alive
 FGF21_Fert %>% 
   ggplot(aes(x=Group, fill=Group, color=Group,
              y=Nb_offspring_alive))+
@@ -58,5 +59,3 @@ save_plot("NbOffspringAlive")
 FGF21_Fert%>% group_by(Group)%>%
   summarise(median_NbOff=median(Nb_offspring),
             median_NbOffAlive=median(Nb_offspring_alive))
-
-            
