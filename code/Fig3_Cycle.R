@@ -12,6 +12,9 @@ lapply(c("tidyverse", "RColorBrewer", "data.table", "colorspace", "readxl",
 #Raw results import and annotation####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
+#Load and transform cycle data without writing individual steps as objects
+FGF21_Cycle<- local({
+
 #Import of raw result file
 cycle_dams<-read_csv("data/FGF21_Cycle.csv")%>%
   mutate(Group=factor(x=group, levels = c("ND", "HFD", "FGF21")))%>%
@@ -24,17 +27,23 @@ cycle_dams_2<-cycle_dams%>%dplyr::select(lab_id, diet, cage, Group, num_range(""
 
 #Convert cycles to different nomenclature: L(leucocytes)=Diestrus or Metestrus, 
 #N(nucleated)=proestrus, C(cornified)=estrus 
-cycle_dams<-cycle_dams_2%>%mutate(cycle=case_when(cycle=="M"~"L",
+cycle_dams_3<-cycle_dams_2%>%mutate(cycle=case_when(cycle=="M"~"L",
                                                   cycle=="D"~"L",
                                                   cycle=="P"~"N",
                                                   cycle=="E"~"C",TRUE~"MOC"))
 
 #Reorder variable according to pre-specified factors
-FGF21_Cycle<-cycle_dams%>%
+FGF21_Cycle<-cycle_dams_3%>%
   mutate(cycle=factor(cycle, levels=c("L", "N", "C")))%>% #Put the different cycle stages in order
   mutate(day=factor(day, levels=c(1:14)))%>%
   mutate(lab_id=factor(lab_id, levels=c(1:2, 4:6, 11,3, 8:9, 12:14,19:24)))
 
+FGF21_Cycle
+})
+
+#Read data file with some summaries about the cycles
+FGF21_Eval <- read.csv("data/FGF21_Evaluation.csv")%>%
+  mutate(Group=factor(x=Group, levels = c("ND", "HFD", "FGF21")))
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 #Define colors & source functions####
@@ -51,7 +60,7 @@ source("code/Functions.R")
 #Plots for figure 3 regarding cycle####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
 
-##Write Plot, version 1 (In one plot with different colors)
+#Write Plot, version 1 (In one plot with different colors)
 ggplot(data = FGF21_Cycle, aes(x=factor(day), y=cycle, colour=Group, group=lab_id))+
   geom_line(size=1)+
   facet_wrap(~lab_id)+
@@ -111,6 +120,46 @@ FGF21_Cycle%>%
             size=7)
 save_plot("PropCycle", folder ="Fig3", height=7)
 
+
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+#Boxplots for data exploration regarding cycle, graphs not included in figure####
+#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+
+#Boxplot with number of cycles
+FGF21_Eval%>%
+  ggplot(aes(x=Group, fill=Group, color=Group,
+                         y=Nb_Cycles))+
+  boxplot_FGF21()
+
+#Add some new variables out of the old ones
+cycle_dams_manuscript <- FGF21_Eval%>%mutate(DaysInCycle=DaysInProestrus+DaysInEstrus, DaysPerCycle=DaysInCycle/Nb_Cycles)%>%
+    mutate(DaysInEstrusPerCycle=DaysInEstrus/Nb_Cycles)
+
+#Graph to map days per cycle
+cycle_dams_manuscript%>%filter(!is.na(DaysPerCycle))%>%
+  select(Lab_ID, Group, Nb_Cycles, starts_with("Days"))%>%  #Select only some of the variables
+    ggplot(aes(x=Group, fill=Group, color=Group,
+               y=DaysPerCycle))+
+    boxplot_FGF21()
+
+#Days in estrous per cycle
+cycle_dams_manuscript%>%
+    filter(!is.na(DaysInEstrusPerCycle))%>%
+    ggplot(aes(x=Group, fill=Group, color=Group,
+               y=DaysInEstrusPerCycle))+
+    boxplot_FGF21()
+
+#Total days in estrous over 14 day period
+cycle_dams_manuscript%>%
+  ggplot(aes(x=Group, fill=Group, color=Group,
+             y=DaysInEstrus))+
+  boxplot_FGF21(nudge = 1.1)
+
+#Summary statistics for the manuscript  
+cycle_dams_manuscript%>%group_by(Group)%>%
+  filter(!is.na(DaysInEstrusPerCycle))%>%
+  summarise(Nb_Cycles=median(Nb_Cycles), DInEstrous=median(DaysInEstrusPerCycle), 
+            n=n())
 
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 #Statistical analysis regarding proportions of cycle####
