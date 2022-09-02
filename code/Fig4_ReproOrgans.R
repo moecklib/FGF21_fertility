@@ -12,6 +12,9 @@ lapply(c("tidyverse", "RColorBrewer", "data.table", "colorspace", "readxl",
 #Raw results import and annotation####
 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*
 
+#Set correct working directory
+setwd("C:/Users/moecklb0/Desktop/Statistical Analysis/FGF21_fertility/")
+
 #Load data file
 FGF21_Repro<-read.csv("data/FGF21_Evaluation.csv")%>%
   mutate(Group=factor(x=Group, levels = c("ND", "HFD", "FGF21")))

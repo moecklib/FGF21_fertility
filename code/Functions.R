@@ -54,7 +54,8 @@ boxplot_FGF21<-function(nudge=0.6,
                         point_size=3){
   list(
     geom_boxplot(size=1),
-    geom_beeswarm(size=point_size),
+    geom_beeswarm(size=point_size,
+                  cex = 3.5),
     scale_fill_manual(values=mycolors_fill),
     scale_color_manual(values=mycolors_stroke),
     geom_signif(comparisons = list(c("FGF21", "HFD")),
